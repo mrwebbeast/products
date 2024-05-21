@@ -177,7 +177,7 @@ class _AppBottomSheetState extends State<AppBottomSheet> {
                                           FocusScope.of(context).unfocus();
                                           context.pop();
                                         },
-                                        child: Icon(
+                                        child: const Icon(
                                           CupertinoIcons.multiply,
                                           color: primaryColor,
                                         ),

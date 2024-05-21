@@ -1,33 +1,6 @@
 import "package:flutter/material.dart";
 import "package:mrwebbeast/core/config/app_fonts.dart";
-import "package:mrwebbeast/services/database/local_database.dart";
-import "package:mrwebbeast/utils/extension/null_safe/null_safe_list_extension.dart";
 import "package:mrwebbeast/utils/theme/colors.dart";
-
-class ThemeController with ChangeNotifier {
-  /// Theme...
-
-  ThemeMode localTheme() {
-    ThemeMode? themeMode;
-    List<ThemeMode> list =
-        ThemeMode.values.where((element) => element.name == LocalDatabase().themeMode).toList();
-    if (list.haveData) {
-      themeMode = list.first;
-    }
-
-    return themeMode ?? ThemeMode.system;
-  }
-
-  late ThemeMode _themeMode = localTheme();
-
-  ThemeMode get themeMode => _themeMode;
-
-  void changeTheme({required ThemeMode themeMode}) {
-    _themeMode = themeMode;
-    LocalDatabase().setThemeMode(mode: _themeMode);
-    notifyListeners();
-  }
-}
 
 class AppThemes {
   ///1) Light Theme...
@@ -35,7 +8,7 @@ class AppThemes {
   static ThemeData lightTheme(BuildContext context) {
     return ThemeData(
       primaryColor: primaryColor,
-      canvasColor: Colors.transparent,
+      canvasColor: Colors.white,
       brightness: Brightness.light,
       dividerTheme: DividerThemeData(color: Colors.grey.shade200),
       useMaterial3: false,
@@ -43,19 +16,18 @@ class AppThemes {
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: createMaterialColor(primaryColor),
       ),
-      appBarTheme: AppBarTheme(
-        elevation: 1,
-        backgroundColor: primaryColor,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
-        centerTitle: true,
-        titleTextStyle: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontSize: 14,
+          color: Colors.black,
+          fontWeight: FontWeight.w400,
         ),
       ),
-      scaffoldBackgroundColor: Colors.grey.shade50,
+      scaffoldBackgroundColor: Colors.white,
       iconTheme: IconThemeData(color: Colors.grey.shade700),
     );
   }
@@ -67,7 +39,7 @@ class AppThemes {
       primaryColor: primaryColor,
       useMaterial3: false,
       fontFamily: AppFonts.defaultFontFamily,
-      canvasColor: Colors.transparent,
+      canvasColor: Colors.white,
       dividerTheme: DividerThemeData(color: Colors.grey.shade800, thickness: 1),
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: createMaterialColor(primaryColor),

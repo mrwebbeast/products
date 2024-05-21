@@ -1,11 +1,19 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
-import "package:infinite_scroll_pagination/infinite_scroll_pagination.dart";
 import "package:mrwebbeast/features/products/model/product_model.dart";
 import "package:mrwebbeast/features/products/controllers/products_controller.dart";
+
+import "package:mrwebbeast/features/products/view/categories_dropdown.dart";
 import "package:mrwebbeast/utils/extension/normal/build_context_extension.dart";
+import "package:mrwebbeast/utils/extension/null_safe/null_safe_list_extension.dart";
+import "package:mrwebbeast/utils/widgets/common/app_text_field.dart";
 
 import "package:mrwebbeast/utils/widgets/common/loading_screen.dart";
 import "package:mrwebbeast/utils/widgets/common/no_data_found.dart";
+import "package:mrwebbeast/utils/widgets/image/image_view.dart";
+import "package:provider/provider.dart";
+import "package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart";
 
 class ProductsView extends StatefulWidget {
   const ProductsView({super.key});
@@ -15,66 +23,155 @@ class ProductsView extends StatefulWidget {
 }
 
 class ProductsViewState extends State<ProductsView> {
-  final PagingController<int, Products> _pagingController = PagingController(firstPageKey: 0);
-
   @override
   void initState() {
-    _pagingController.addPageRequestListener((pageKey) async {
-      _fetchPage(pageKey);
-    });
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      fetchProducts();
+      context.read<ProductsController>().fetchProductCategories();
+    });
   }
+
+  TextEditingController searchCtrl = TextEditingController();
 
   @override
   void dispose() {
-    _pagingController.dispose();
+    searchCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchPage(int pageKey) async {
-    const pageSize = 8;
-    try {
-      final response = await ProductsRepository().fetchProducts(page: pageKey + 1, limit: pageSize);
-      final isLastPage = (response?.length ?? 0) < pageSize;
-      if (isLastPage) {
-        _pagingController.appendLastPage(response ?? []);
-      } else {
-        final nextPageKey = pageKey + 1;
-        _pagingController.appendPage(response ?? [], nextPageKey);
-      }
-    } catch (error) {
-      _pagingController.error = error;
-    }
+  Future fetchProducts({bool? loadingNext}) async {
+    return await context.read<ProductsController>().fetchProductsPagination(
+          isRefresh: loadingNext == true ? false : true,
+          loadingNext: loadingNext ?? false,
+          search: searchCtrl.text,
+        );
   }
+
+  Timer? _debounce;
+
+  void onSearchFieldChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      fetchProducts();
+      setState(() {});
+    });
+  }
+
+  List<Products?>? products;
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      backgroundColor: Colors.white,
-      onRefresh: () => Future.sync(() => _pagingController.refresh()),
-      child: PagedListView(
-        physics: const BouncingScrollPhysics(),
-        pagingController: _pagingController,
-        builderDelegate: PagedChildBuilderDelegate<Products>(
-          animateTransitions: true,
-          transitionDuration: const Duration(milliseconds: 500),
-          itemBuilder: (context, data, index) {
-            return ProductCard(index: index, data: data);
-          },
-          firstPageProgressIndicatorBuilder: (context) {
-            return const LoadingScreen(message: "Loading Products...");
-          },
-          newPageProgressIndicatorBuilder: (context) {
-            return const LoadingScreen(heightFactor: 0.1, message: "Loading More...");
-          },
-          noItemsFoundIndicatorBuilder: (context) {
-            return const NoDataFound();
-          },
-          firstPageErrorIndicatorBuilder: (context) {
-            return const NoDataFound();
-          },
-        ),
-      ),
+    return Consumer<ProductsController>(
+      builder: (context, controller, child) {
+        products = controller.products;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Products"),
+            actions: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 60, maxHeight: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Center(
+                      child: Text(
+                        controller.selectedCategory ?? '',
+                        style: const TextStyle(fontSize: 10, color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          body: SmartRefresher(
+            controller: controller.productsController,
+            enablePullUp: true,
+            enablePullDown: true,
+            onRefresh: () async {
+              if (mounted) {
+                await fetchProducts();
+              }
+            },
+            onLoading: () async {
+              if (mounted) {
+                await fetchProducts(loadingNext: true);
+              }
+            },
+            child: ListView(
+              shrinkWrap: true,
+              physics: const BouncingScrollPhysics(),
+              children: [
+                AppTextField(
+                  hintText: "Search Product",
+                  controller: searchCtrl,
+                  fillColor: Colors.white,
+                  suffixIcon: IconButton(
+                    icon: const Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {
+                      controller.changeCategory(category: "All");
+                      fetchProducts();
+                    },
+                  ),
+                  onChanged: (val) {
+                    controller.changeCategory(category: "All");
+                    onSearchFieldChanged(val);
+                  },
+                ),
+                if (controller.categories.haveData)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.grey.shade200),
+                    child: CategoryDropdown(
+                      items: controller.categories ?? [],
+                      initialValue: controller.selectedCategory,
+                      onChanged: (val) {
+                        controller.changeCategory(category: val);
+                        searchCtrl.clear();
+                        setState(() {});
+                        fetchProducts();
+                      },
+                    ),
+                  ),
+                if (controller.loadingProducts)
+                  const LoadingScreen(
+                    heightFactor: 0.8,
+                    message: 'Loading Products...',
+                  )
+                else if (products.haveData)
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: products?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      var data = products?.elementAt(index);
+                      return ProductCard(index: index, data: data);
+                    },
+                  )
+                else
+                  const NoDataFound(
+                    heightFactor: 0.8,
+                    message: 'No Products Found',
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -92,23 +189,50 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 8),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: context.containerColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('${index + 1}) ${data?.title ?? ''}'),
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              data?.description ?? "",
-              style: const TextStyle(fontSize: 12),
-            ),
+          ImageView(
+            height: 80,
+            width: 80,
+            borderRadiusValue: 40,
+            backgroundColor: Colors.white,
+            networkImage: data?.thumbnail,
+            fit: BoxFit.cover,
+            border: Border.all(color: Colors.grey.shade100),
+            margin: const EdgeInsets.only(right: 24),
           ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data?.title ?? '',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    data?.description ?? "",
+                    style: const TextStyle(fontSize: 10),
+                    maxLines: 3,
+                  ),
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );

@@ -16,6 +16,5 @@ MaterialColor createMaterialColor(Color color) {
   return MaterialColor(color.value, swatch);
 }
 
-final Color primaryColor = Colors.greenAccent.shade400;
+const Color primaryColor = Colors.black;
 final Color secondaryColor = Colors.greenAccent.shade200;
-

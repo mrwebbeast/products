@@ -28,10 +28,10 @@ Map<String, String> defaultHeaders() {
   return {"Authorization": "Bearer ${LocalDatabase().accessToken}"};
 }
 
-class APIResponse<T> {
+class APIResponse {
   final int? statusCode;
   final String? message;
-  final T? body;
+  final dynamic body;
 
   APIResponse({this.statusCode, this.message, this.body});
 }

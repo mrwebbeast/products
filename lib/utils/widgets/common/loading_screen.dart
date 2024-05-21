@@ -38,13 +38,13 @@ class _LoadingScreenState extends State<LoadingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Loader(color: primaryColor, radius: 12),
             ),
             Text(
               message ?? "Loading Data...",
-              style: TextStyle(
+              style: const TextStyle(
                 color: primaryColor,
               ),
             ),

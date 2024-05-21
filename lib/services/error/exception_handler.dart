@@ -39,6 +39,7 @@ class ErrorHandler {
     log("API Url => $url");
     log("Status Code => $statusCode");
     log("Message :- $message");
+
     dynamic json;
     try {
       switch (response.statusCode) {
@@ -53,7 +54,7 @@ class ErrorHandler {
     } catch (e) {
       rethrow;
     }
-
+    log("body :- $json");
     return APIResponse(statusCode: statusCode, message: message, body: json);
   }
 

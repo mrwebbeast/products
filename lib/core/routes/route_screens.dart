@@ -1,7 +1,6 @@
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
-import "package:mrwebbeast/features/home/home_view.dart";
 
 import "package:mrwebbeast/services/database/local_database.dart";
 
@@ -11,13 +10,15 @@ import "package:mrwebbeast/app.dart";
 
 import "package:mrwebbeast/core/routes/route_configs.dart";
 
+import "../../features/products/view/products_view.dart";
+
 class RoutesScreens {
   /// Initial Route...
   // static final _settingsNavigatorKey = GlobalKey<NavigatorState>();
 
   static String? initialLocation() {
     // bool authenticated = isAuthenticated();
-    return Routes.homeScreen;
+    return Routes.products;
   }
 
   ///1)  Route Config...
@@ -27,10 +28,10 @@ class RoutesScreens {
     navigatorKey: MyApp.navigatorKey,
     routes: [
       GoRoute(
-        name: Routes.homeScreen,
-        path: Routes.homeScreen,
+        name: Routes.products,
+        path: Routes.products,
         pageBuilder: (context, state) {
-          return materialPage(state: state, child: const Home());
+          return materialPage(state: state, child: const ProductsView());
         },
         redirect: authRequired,
       ),
@@ -61,7 +62,7 @@ class RoutesScreens {
               color: context.colorScheme.primary,
               child: const Text("Home"),
               onPressed: () {
-                context.go(Routes.homeScreen);
+                context.go(Routes.products);
               },
             ),
           ),
@@ -83,7 +84,7 @@ class RoutesScreens {
     if (!isAuthenticated()) {
       debugPrint("authRequired");
 
-      return Routes.homeScreen;
+      return Routes.products;
     }
     return null;
   }

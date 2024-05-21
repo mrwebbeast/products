@@ -46,7 +46,7 @@ class _NoDataFoundState extends State<NoDataFound> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   title ?? "Not Found",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
                     color: primaryColor,
@@ -56,7 +56,7 @@ class _NoDataFoundState extends State<NoDataFound> {
               ),
             Text(
               message ?? "No Data Found",
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 0.2,

@@ -47,6 +47,10 @@ class ApiConfig {
   static final String supportUrl = "${baseUrl}support";
   static final String termsAndConditionsUrl = "${baseUrl}terms-conditions";
 
-  ///1) APP CMS..
+  ///1) Products.
+  static const String categories = "products/categories";
+
   static const String products = "products";
+  static const String searchProducts = "products/search";
+  static const String productByCategory = "products/category";
 }

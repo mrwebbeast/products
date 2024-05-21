@@ -1,13 +1,8 @@
 import "dart:io";
-
 import "package:cached_network_image/cached_network_image.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/foundation.dart";
-import "package:go_router/go_router.dart";
-import "package:mrwebbeast/core/routes/route_configs.dart";
-
 import "package:mrwebbeast/core/config/app_assets.dart";
-
 import "package:mrwebbeast/utils/theme/colors.dart";
 
 class ImageView extends StatelessWidget {
@@ -142,7 +137,7 @@ class ImageView extends StatelessWidget {
     return SizedBox(
       height: height ?? 10,
       width: width ?? 10,
-      child: Center(
+      child: const Center(
         child: CupertinoActivityIndicator(color: primaryColor),
       ),
     );
@@ -175,7 +170,7 @@ class ImageView extends StatelessWidget {
     return SizedBox(
       height: height ?? 10,
       width: width ?? 10,
-      child: Center(
+      child: const Center(
         child: CupertinoActivityIndicator(color: primaryColor),
       ),
     );
