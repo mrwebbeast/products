@@ -3,7 +3,7 @@ import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
 
 import "package:mrwebbeast/core/config/app_config.dart";
-import "package:mrwebbeast/services/database/local_database.dart";
+
 import "package:mrwebbeast/services/error/exception_handler.dart";
 
 String decodeQueryParameter({required Map<String, String>? body}) {
@@ -25,7 +25,7 @@ String decodeQueryParameter({required Map<String, String>? body}) {
 
 ///Seconds
 Map<String, String> defaultHeaders() {
-  return {"Authorization": "Bearer ${LocalDatabase().accessToken}"};
+  return {};
 }
 
 class APIResponse {

@@ -1,13 +1,19 @@
-import "package:flutter/material.dart";
+import "package:flutter/cupertino.dart";
+import "package:flutter/foundation.dart";
 import "package:hive_flutter/adapters.dart";
 import "package:mrwebbeast/core/config/app_config.dart";
+import "package:mrwebbeast/features/products/model/product/product_data.dart";
+import "package:mrwebbeast/utils/functions/app_functions.dart";
+import "package:provider/provider.dart";
 
+import "../../features/products/controllers/products_controller.dart";
 
-class LocalDatabase extends ChangeNotifier {
+class LocalDatabase {
   ///Hive Database Initialization....
 
   static Future initialize() async {
     await Hive.initFlutter();
+    Hive.registerAdapter(ProductsAdapter());
     await Hive.openBox(AppConfig.databaseName);
   }
 
@@ -16,56 +22,62 @@ class LocalDatabase extends ChangeNotifier {
 
   ///Access Local Database data...
 
-  late String? name = database.get("name");
-  late String? email = database.get("email");
-  late String? mobile = database.get("mobile");
-  late String? profilePhoto = database.get("photoUrl");
-  late String? accessToken = database.get("accessToken");
-  late String? deviceToken = database.get("deviceToken");
+  late String? search = database.get("search");
 
-  late double? latitude = database.get("latitude");
-  late double? longitude = database.get("longitude");
-  late String? themeMode = database.get("themeMode");
-
-  ///Setting Local Database data...
-  ///
-  // Future updateUser({required UserData user}) async {
-  //   _currentUser = user;
-  //   notifyListeners();
-  //   database.put("uid", user.uid);
-  //   database.put("name", user.name);
-  //   database.put("email", user.email);
-  //   database.put("username", user.username);
-  //   database.put("photoUrl", user.photoUrl);
-  //   database.put("role", user.role);
-  //   database.put("status", user.status);
-  //   database.put("points", user.points);
-  //   database.put("isPremium", user.isPremium);
-  //   database.put("isAnonymous", user.isAnonymous);
-  //   database.put("creationTime", user.creationTime);
-  //   database.put("lastSignInTime", user.lastSignInTime);
-  // }
-
-  setDeviceToken(String? token) {
-    deviceToken = token;
-    database.put("deviceToken", token ?? "");
-    notifyListeners();
+  String? category() {
+    String? category = database.get("category");
+    BuildContext? context = getContext();
+    if (context != null) {
+      context.read<ProductsController>().changeCategory(category: category);
+    }
+    return category;
   }
 
-  setThemeMode({required ThemeMode mode}) {
-    themeMode = mode.name;
-    database.put("themeMode", themeMode ?? "");
-    notifyListeners();
+  List<Products?>? products() {
+    List<Products?>? products = [];
+    List<dynamic>? localProducts = database.get("products");
+    debugPrint("Fetched ${localProducts?.length} Products from LocalDatabase");
+    for (Products? data in localProducts ?? []) {
+      debugPrint("data ${data?.title}");
+      products.add(data);
+    }
+
+    BuildContext? context = getContext();
+    if (context != null) {
+      context.read<ProductsController>().setProducts(products);
+    }
+    return products;
   }
 
-  setLatLong(
-    double? latitude,
-    double? longitude,
-  ) {
-    latitude = latitude;
-    longitude = longitude;
-    database.put("latitude", latitude);
-    database.put("longitude", longitude);
-    notifyListeners();
+  List<String?>? categories() {
+    List<String?>? categories = [];
+    List<dynamic>? localCategories = database.get("categories");
+
+    for (String? data in localCategories ?? []) {
+      categories.add(data);
+    }
+
+    BuildContext? context = getContext();
+    if (context != null) {
+      context.read<ProductsController>().setCategories(categories.toSet().toList());
+    }
+    return categories;
+  }
+
+  saveSearch(String? val) {
+    database.put("search", val ?? '');
+    database.put("category", 'All');
+  }
+
+  saveCategory(String? val) {
+    database.put("category", val ?? '');
+  }
+
+  saveProducts({required List<Products?>? products}) {
+    database.put("products", products);
+  }
+
+  saveCategories({required List<String?>? categories}) {
+    database.put("categories", categories);
   }
 }

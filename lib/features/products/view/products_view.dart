@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:mrwebbeast/features/products/model/product_model.dart";
+import "package:mrwebbeast/features/products/model/product/product_data.dart";
 import "package:mrwebbeast/features/products/controllers/products_controller.dart";
 
 import "package:mrwebbeast/features/products/view/categories_dropdown.dart";
@@ -15,6 +15,8 @@ import "package:mrwebbeast/utils/widgets/image/image_view.dart";
 import "package:provider/provider.dart";
 import "package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart";
 
+import "../../../services/database/local_database.dart";
+
 class ProductsView extends StatefulWidget {
   const ProductsView({super.key});
 
@@ -27,8 +29,20 @@ class ProductsViewState extends State<ProductsView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      fetchProducts();
-      context.read<ProductsController>().fetchProductCategories();
+      LocalDatabase localDatabase = LocalDatabase();
+      products = localDatabase.products();
+      localDatabase.category();
+      List<String?>? categories = localDatabase.categories();
+      searchCtrl.text = localDatabase.search ?? '';
+      setState(() {});
+
+      if (products.haveData == false) {
+        fetchProducts();
+      }
+
+      if (categories.haveData == false) {
+        context.read<ProductsController>().fetchProductCategories();
+      }
     });
   }
 
@@ -54,6 +68,7 @@ class ProductsViewState extends State<ProductsView> {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
       fetchProducts();
+      LocalDatabase().saveSearch(searchCtrl.text);
       setState(() {});
     });
   }
@@ -83,7 +98,7 @@ class ProductsViewState extends State<ProductsView> {
                     ),
                     child: Center(
                       child: Text(
-                        controller.selectedCategory ?? '',
+                        controller.selectedCategory ?? 'All',
                         style: const TextStyle(fontSize: 10, color: Colors.black),
                       ),
                     ),
@@ -140,9 +155,11 @@ class ProductsViewState extends State<ProductsView> {
                       items: controller.categories ?? [],
                       initialValue: controller.selectedCategory,
                       onChanged: (val) {
-                        controller.changeCategory(category: val);
                         searchCtrl.clear();
                         setState(() {});
+                        LocalDatabase().saveSearch(searchCtrl.text);
+                        controller.changeCategory(category: val);
+
                         fetchProducts();
                       },
                     ),
@@ -189,7 +206,7 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: context.containerColor,

@@ -2,8 +2,6 @@ import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 import "package:go_router/go_router.dart";
 
-import "package:mrwebbeast/services/database/local_database.dart";
-
 import "package:mrwebbeast/utils/extension/normal/build_context_extension.dart";
 
 import "package:mrwebbeast/app.dart";
@@ -33,7 +31,6 @@ class RoutesScreens {
         pageBuilder: (context, state) {
           return materialPage(state: state, child: const ProductsView());
         },
-        redirect: authRequired,
       ),
     ],
     errorPageBuilder: (context, state) {
@@ -72,22 +69,6 @@ class RoutesScreens {
   }
 
   static authRedirect(BuildContext context, GoRouterState state) {}
-
-  static bool isAuthenticated() {
-    LocalDatabase localDatabase = LocalDatabase();
-    return localDatabase.accessToken?.isNotEmpty == true;
-  }
-
-  static String? authRequired(BuildContext context, GoRouterState state) {
-    debugPrint("isAuthenticated() ${isAuthenticated()}");
-    debugPrint("authRequired");
-    if (!isAuthenticated()) {
-      debugPrint("authRequired");
-
-      return Routes.products;
-    }
-    return null;
-  }
 
   ///3)  Material Page ...
 

@@ -1,6 +1,4 @@
 import "package:flutter/material.dart";
-import "package:mrwebbeast/services/database/local_database.dart";
-
 
 String decodeQueryParameter({required Map<String, String>? body}) {
   String formattedData = "";
@@ -21,5 +19,5 @@ String decodeQueryParameter({required Map<String, String>? body}) {
 
 ///Seconds
 Map<String, String> defaultHeaders() {
-  return {"Authorization": "Bearer ${LocalDatabase().accessToken}"};
+  return {};
 }

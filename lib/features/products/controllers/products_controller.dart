@@ -1,8 +1,10 @@
 import "package:flutter/cupertino.dart";
 
 import "package:mrwebbeast/core/config/app_config.dart";
+import "package:mrwebbeast/features/products/model/product/product_data.dart";
 
 import "package:mrwebbeast/features/products/model/product_model.dart";
+import "package:mrwebbeast/services/database/local_database.dart";
 import "package:mrwebbeast/services/error/exception_handler.dart";
 import "package:mrwebbeast/services/network/http/api_service.dart";
 import "package:mrwebbeast/utils/extension/null_safe/null_safe_list_extension.dart";
@@ -11,7 +13,18 @@ import "package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart";
 
 class ProductsController extends ChangeNotifier {
   /// 1) Events API...
-  bool loadingProducts = true;
+
+  setProducts(List<Products?>? products) {
+    this.products = products;
+    notifyListeners();
+  }
+
+  setCategories(List<String?>? categories) {
+    this.categories = categories;
+    notifyListeners();
+  }
+
+  bool loadingProducts = false;
 
   List<Products?>? products;
 
@@ -71,6 +84,9 @@ class ProductsController extends ChangeNotifier {
             notifyListeners();
           }
 
+          if (products.haveData) {
+            LocalDatabase().saveProducts(products: products);
+          }
           if (loadingNext) {
             productsController.loadComplete();
           } else {
@@ -102,15 +118,17 @@ class ProductsController extends ChangeNotifier {
 
   /// 2) Product Categories API...
   bool loadingCategories = false;
-  List<String>? categories;
+  List<String?>? categories;
   String? selectedCategory;
 
   changeCategory({required String? category}) {
     selectedCategory = category;
+    debugPrint("selectedCategory $selectedCategory");
+    LocalDatabase().saveCategory(category);
     notifyListeners();
   }
 
-  Future<List<String>?> fetchProductCategories() async {
+  Future<List<String?>?> fetchProductCategories() async {
     BuildContext? context = getContext();
     loadingCategories = true;
     notifyListeners();
@@ -128,14 +146,15 @@ class ProductsController extends ChangeNotifier {
 
         List<dynamic>? jsonData = response?.body;
         if (jsonData.haveData) {
+          categories = ["All"];
+          selectedCategory = categories?.first;
+          notifyListeners();
           for (var category in jsonData ?? []) {
-            if (categories == null) {
-              categories = ["All"];
-              selectedCategory = categories?.first;
-            }
             categories?.add(category);
             notifyListeners();
           }
+          debugPrint("categories $categories");
+          LocalDatabase().saveCategories(categories: categories?.toSet().toList());
         }
         onComplete();
       } catch (e, s) {

@@ -14,12 +14,13 @@ class CategoryDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("initialValue $initialValue && items ${items.length}");
     return DropdownButton<String?>(
       isExpanded: true,
       underline: const SizedBox(),
       padding: const EdgeInsets.symmetric(horizontal: 12),
       alignment: Alignment.center,
-      items: items.map((item) {
+      items: items.toSet().map((item) {
         return DropdownMenuItem<String?>(
           value: item,
           child: Text(item ?? ''),
