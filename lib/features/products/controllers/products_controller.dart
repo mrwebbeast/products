@@ -1,6 +1,7 @@
 import "package:flutter/cupertino.dart";
 
 import "package:mrwebbeast/core/config/app_config.dart";
+import "package:mrwebbeast/features/products/model/categories_data.dart";
 import "package:mrwebbeast/features/products/model/product/product_data.dart";
 
 import "package:mrwebbeast/features/products/model/product_model.dart";
@@ -143,17 +144,19 @@ class ProductsController extends ChangeNotifier {
           baseUrl: ApiConfig.dummyJsonBaseUrl,
           endPoint: ApiConfig.categories,
         );
-
         List<dynamic>? jsonData = response?.body;
+        debugPrint("jsonData ${jsonData}");
         if (jsonData.haveData) {
           categories = ["All"];
           selectedCategory = categories?.first;
           notifyListeners();
-          for (var category in jsonData ?? []) {
-            categories?.add(category);
-            notifyListeners();
+          debugPrint("categories ${jsonData?.length}");
+          for (int index = 0; index < (jsonData?.length ?? 0); index++) {
+            var data = jsonData?.elementAt(index);
+            CategoriesData categoriesData = CategoriesData.fromJson(data);
+            debugPrint("categories ${categoriesData.name}");
+            categories?.add(categoriesData.name);
           }
-          debugPrint("categories $categories");
           LocalDatabase().saveCategories(categories: categories?.toSet().toList());
         }
         onComplete();

@@ -40,9 +40,9 @@ class ProductsViewState extends State<ProductsView> {
         fetchProducts();
       }
 
-      if (categories.haveData == false) {
+      // if (categories.haveData == false) {
         context.read<ProductsController>().fetchProductCategories();
-      }
+      // }
     });
   }
 
