@@ -153,6 +153,7 @@ class ProductsController extends ChangeNotifier {
           debugPrint("categories ${jsonData?.length}");
           for (int index = 0; index < (jsonData?.length ?? 0); index++) {
             var data = jsonData?.elementAt(index);
+
             CategoriesData categoriesData = CategoriesData.fromJson(data);
             debugPrint("categories ${categoriesData.name}");
             categories?.add(categoriesData.name);
